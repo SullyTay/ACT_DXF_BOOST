@@ -9,6 +9,7 @@ lists these pieces on lines 16–19.
 
 ```powershell
 python -m brace_dxf.versioned generate samples output
+python -m brace_dxf.versioned cut-only samples output
 python -m unittest discover -s tests -v
 ```
 
@@ -38,7 +39,12 @@ versioned file. **V7 is the current trial.**
 Versioned files are named `UKNBRC_1_V7.dxf`, `UKNBRC_2_V7.dxf`, and so on.
 The older descriptive filenames remain in the local working folder for editor
 tabs already open. The repository contains the numbered V1–V7 DXFs; future
-iterations use only version numbers.
+iterations use only version numbers. The cut-only companions keep the same V
+number because their finished geometry is identical. For example,
+`UKNBRC_1_V7_CUT_ONLY.dxf` contains one closed `CUT` polyline and no
+`REFERENCE` geometry. Use it to test Boost's Automatic outline handling or
+import it into another CAM program. Keep the unsuffixed V7 DXF for visual
+reference.
 
 ## What comes from ACT
 
@@ -81,9 +87,10 @@ rectangular blank outside the finished stepped contour. Setting **Cut geometry
 → Outline → No outline** removed that warning in the user's import and Boost
 then displayed a cutting program. The larger closed rectangle on `REFERENCE`
 is the likely cause of the automatic outline ambiguity; this is an inference
-from the screen and has not been isolated with a `CUT`-only import. For a
-machining import, select only `CUT` in the DXF layer filter. Keep `REFERENCE`
-for visual checks when needed, and inspect the generated cut path before use.
+from the screen and has not been isolated with a cut-only import. The
+`*_CUT_ONLY.dxf` companions remove the rectangle and all other reference
+entities without changing the finished contour. Inspect the generated cut path
+before use.
 
 ## Known-good Boost comparison
 

@@ -61,6 +61,15 @@ class TrialGeometryTest(unittest.TestCase):
             self.assertIn("0\nLWPOLYLINE\n100\nAcDbEntity\n8\nCUT\n100\nAcDbPolyline\n90\n12\n70\n1\n", dxf)
             self.assertIn("0\nLWPOLYLINE\n100\nAcDbEntity\n8\nREFERENCE\n100\nAcDbPolyline\n90\n4\n70\n1\n", dxf)
 
+    def test_cut_only_companion_has_one_closed_contour_and_no_references(self):
+        for spec in SPECS:
+            dxf = build_dxf(spec, include_reference=False)
+            self.assertEqual(dxf.count("0\nLWPOLYLINE\n"), 1)
+            self.assertIn("8\nCUT\n100\nAcDbPolyline\n90\n12\n70\n1\n", dxf)
+            self.assertNotIn("REFERENCE", dxf)
+            self.assertNotIn("0\nCIRCLE\n", dxf)
+            self.assertNotIn("0\nLINE\n", dxf)
+
     def test_sample_data_matches_act_order(self):
         source = ROOT / "Source Files" / "LOHA1046597470 Order.txt"
         if not source.exists():

@@ -136,35 +136,36 @@ def finished_outline(spec):
     ]
 
 
-def build_dxf(spec):
+def build_dxf(spec, include_reference=True):
     flange = spec["flange_width"]
     web = spec["web_width"]
     lip = spec["trial_lip_width"]
     offset = spec["hole_offset_from_web"]
     entities = lwpolyline(finished_outline(spec), "CUT")
-    entities += lwpolyline(outline(spec), "REFERENCE")
-    web_bottom = lip + flange
-    web_top = web_bottom + web
-    cut_paths = inner_cut_paths(spec)
-    for side, y, low, high in (
-        ("right", lip + flange - offset, lip, web_bottom),
-        ("left", web_top + offset, web_top, web_top + flange),
-    ):
-        for x in spec["holes"][side]:
-            entities += circle(x, y, spec["hole_diameter"] / 2)
-            entities += line(x, low, x, high, "REFERENCE")
-    for x_start, y, x_end in bend_spans(cut_paths):
-        entities += line(x_start, y, x_end, y, "REFERENCE", color=2,
-                         linetype="DASHED")
-    linetypes = (
-        pairs((0, "LTYPE"), (2, "CONTINUOUS"), (70, 0),
-              (3, "Solid line"), (72, 65), (73, 0), (40, 0))
-        + pairs((0, "LTYPE"), (2, "DASHED"), (70, 0),
-                (3, "Dashed line"), (72, 65), (73, 2), (40, 0.375),
-                (49, 0.25), (74, 0), (49, -0.125), (74, 0))
-    )
+    if include_reference:
+        entities += lwpolyline(outline(spec), "REFERENCE")
+        web_bottom = lip + flange
+        web_top = web_bottom + web
+        cut_paths = inner_cut_paths(spec)
+        for side, y, low, high in (
+            ("right", lip + flange - offset, lip, web_bottom),
+            ("left", web_top + offset, web_top, web_top + flange),
+        ):
+            for x in spec["holes"][side]:
+                entities += circle(x, y, spec["hole_diameter"] / 2)
+                entities += line(x, low, x, high, "REFERENCE")
+        for x_start, y, x_end in bend_spans(cut_paths):
+            entities += line(x_start, y, x_end, y, "REFERENCE", color=2,
+                             linetype="DASHED")
+    linetypes = pairs((0, "LTYPE"), (2, "CONTINUOUS"), (70, 0),
+                      (3, "Solid line"), (72, 65), (73, 0), (40, 0))
+    if include_reference:
+        linetypes += pairs((0, "LTYPE"), (2, "DASHED"), (70, 0),
+                           (3, "Dashed line"), (72, 65), (73, 2), (40, 0.375),
+                           (49, 0.25), (74, 0), (49, -0.125), (74, 0))
     layers = ""
-    for name in ("CUT", "REFERENCE"):
+    layer_names = ("CUT", "REFERENCE") if include_reference else ("CUT",)
+    for name in layer_names:
         layers += pairs((0, "LAYER"), (2, name), (70, 0),
                         (62, spec["layer_colors"][name]),
                         (6, "CONTINUOUS"))
@@ -172,9 +173,10 @@ def build_dxf(spec):
         pairs((0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1015"),
               (9, "$INSUNITS"), (70, 1), (0, "ENDSEC"))
         + pairs((0, "SECTION"), (2, "TABLES"), (0, "TABLE"),
-                (2, "LTYPE"), (70, 2))
+                (2, "LTYPE"), (70, 2 if include_reference else 1))
         + linetypes
-        + pairs((0, "ENDTAB"), (0, "TABLE"), (2, "LAYER"), (70, 2))
+        + pairs((0, "ENDTAB"), (0, "TABLE"), (2, "LAYER"),
+                (70, len(layer_names)))
         + layers
         + pairs((0, "ENDTAB"), (0, "ENDSEC"), (0, "SECTION"),
                 (2, "ENTITIES"))
@@ -183,7 +185,7 @@ def build_dxf(spec):
     )
 
 
-def inspect_dxf(path):
+def inspect_dxf(path, cut_only=False):
     lines = Path(path).read_text(encoding="ascii").splitlines()
     if len(lines) % 2:
         raise ValueError("DXF has an unmatched group code")
@@ -206,9 +208,13 @@ def inspect_dxf(path):
             if value not in layers:
                 raise ValueError(f"Unexpected layer: {value}")
             layers[value].add(entity)
-    expected = {"LWPOLYLINE": 2, "CIRCLE": 4, "LINE": 6}
-    expected_layers = {"CUT": {"LWPOLYLINE"},
-                       "REFERENCE": {"LWPOLYLINE", "CIRCLE", "LINE"}}
+    if cut_only:
+        expected = {"LWPOLYLINE": 1, "CIRCLE": 0, "LINE": 0}
+        expected_layers = {"CUT": {"LWPOLYLINE"}, "REFERENCE": set()}
+    else:
+        expected = {"LWPOLYLINE": 2, "CIRCLE": 4, "LINE": 6}
+        expected_layers = {"CUT": {"LWPOLYLINE"},
+                           "REFERENCE": {"LWPOLYLINE", "CIRCLE", "LINE"}}
     if counts != expected or layers != expected_layers:
         raise ValueError(f"Unexpected DXF content: {counts}, {layers}")
     if ("9", "$INSUNITS") not in data or ("70", "1") not in data:

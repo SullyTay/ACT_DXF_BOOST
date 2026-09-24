@@ -7,6 +7,7 @@ from brace_dxf.import_order import PIECE_MARKS
 from brace_dxf.versioned import (
     LEGACY_SUFFIXES,
     archive_legacy,
+    export_cut_only,
     generate_version,
     latest_version,
 )
@@ -45,6 +46,10 @@ class VersioningTest(unittest.TestCase):
             self.assertEqual((version, len(files), created), (1, 4, True))
             version, files, created = generate_version(samples, output)
             self.assertEqual((version, files, created), (1, [], False))
+            cut_files = export_cut_only(samples, output)
+            self.assertEqual(len(cut_files), 4)
+            self.assertEqual(export_cut_only(samples, output), [])
+            self.assertEqual(latest_version(output), 1)
             spec_path = samples / "UKNBRC_1.json"
             spec = json.loads(spec_path.read_text(encoding="utf-8"))
             spec["trial_cut_clearance_from_bend"] = 0.25

@@ -4,7 +4,7 @@ import argparse
 import re
 from pathlib import Path
 
-from .__main__ import build_dxf, load_spec
+from .__main__ import build_dxf, inspect_dxf, load_spec
 from .import_order import PIECE_MARKS
 
 
@@ -71,6 +71,34 @@ def generate_version(sample_dir, output_dir):
     return version, targets, True
 
 
+def export_cut_only(sample_dir, output_dir):
+    """Write companions of the current version with only its closed cut path."""
+    samples = Path(sample_dir)
+    output = Path(output_dir)
+    version = latest_version(output)
+    if not version:
+        raise ValueError("Generate a numbered DXF set before exporting cut-only files")
+    exported = []
+    for mark in PIECE_MARKS:
+        spec = load_spec(samples / f"{mark}.json")
+        if spec["piece_mark"] != mark:
+            raise ValueError(f"Piece mark does not match {mark}.json")
+        full = output / f"{mark}_V{version}.dxf"
+        if full.read_bytes() != build_dxf(spec).encode("ascii"):
+            raise ValueError(f"Current reference DXF differs from sample: {full}")
+        destination = output / f"{mark}_V{version}_CUT_ONLY.dxf"
+        data = build_dxf(spec, include_reference=False).encode("ascii")
+        if destination.exists():
+            if destination.read_bytes() != data:
+                raise ValueError(f"Existing cut-only file differs: {destination}")
+            continue
+        with destination.open("xb") as stream:
+            stream.write(data)
+        inspect_dxf(destination, cut_only=True)
+        exported.append(destination)
+    return exported
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -79,16 +107,22 @@ def main():
     generate = subparsers.add_parser("generate", help="write next version if geometry changed")
     generate.add_argument("sample_dir")
     generate.add_argument("output_dir")
+    cut_only = subparsers.add_parser("cut-only", help="export current version's cut path alone")
+    cut_only.add_argument("sample_dir")
+    cut_only.add_argument("output_dir")
     args = parser.parse_args()
     if args.command == "archive":
         paths = archive_legacy(args.output_dir)
         print(f"Archived {len(paths)} files; latest is V{latest_version(args.output_dir)}")
-    else:
+    elif args.command == "generate":
         version, paths, created = generate_version(args.sample_dir, args.output_dir)
         if created:
             print(f"Created V{version}: {', '.join(str(path) for path in paths)}")
         else:
             print(f"No DXF change; V{version} is current")
+    else:
+        paths = export_cut_only(args.sample_dir, args.output_dir)
+        print(f"Created {len(paths)} cut-only companions for V{latest_version(args.output_dir)}")
 
 
 if __name__ == "__main__":
