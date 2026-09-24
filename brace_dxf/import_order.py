@@ -3,6 +3,7 @@
 import argparse
 import json
 from pathlib import Path
+import re
 import xml.etree.ElementTree as ET
 
 
@@ -23,8 +24,11 @@ def read_braces(path):
             continue
         if mark in found:
             raise ValueError(f"Duplicate piece mark: {mark}")
-        if order_line.findtext("OrderCode") != "CFPBC4X2.5-14":
+        order_code = order_line.findtext("OrderCode", "")
+        section = re.fullmatch(r"CFPBC4X2\.5-(\d+)", order_code)
+        if section is None:
             raise ValueError(f"Unexpected section for {mark}")
+        gauge = int(section.group(1))
         holes = {"left": [], "right": []}
         for punch in order_line.findall("./Punching/Punch"):
             if punch.findtext("Size") != "Round_5_8":
@@ -43,6 +47,7 @@ def read_braces(path):
             "piece_mark": mark,
             "source": f"{Path(path).name}: {mark}; cross-checked against punch-pattern PDF",
             "units": "inch",
+            "gauge": gauge,
             "length": float(order_line.findtext("./Length/Total")),
             "web_width": 4.0,
             "flange_width": 2.5,

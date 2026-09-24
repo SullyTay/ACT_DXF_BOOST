@@ -1,0 +1,39 @@
+{
+  "note": "Selection guide only; this DXF exporter does not set Boost material fields",
+  "material_family": "Steel",
+  "nominal_basis": "Published galvanized-sheet gauge convention; verify against Unravel Android app",
+  "assignments": [
+    {
+      "piece_mark": "UKNBRC_1",
+      "act_gauge": 14,
+      "nominal_thickness_in": 0.0785,
+      "boost_material": "1.0038",
+      "boost_raw_material": "STAI0080",
+      "boost_raw_thickness_in": 0.08
+    },
+    {
+      "piece_mark": "UKNBRC_2",
+      "act_gauge": 14,
+      "nominal_thickness_in": 0.0785,
+      "boost_material": "1.0038",
+      "boost_raw_material": "STAI0080",
+      "boost_raw_thickness_in": 0.08
+    },
+    {
+      "piece_mark": "HUKNBRC_1",
+      "act_gauge": 14,
+      "nominal_thickness_in": 0.0785,
+      "boost_material": "1.0038",
+      "boost_raw_material": "STAI0080",
+      "boost_raw_thickness_in": 0.08
+    },
+    {
+      "piece_mark": "HUKNBRC_2",
+      "act_gauge": 14,
+      "nominal_thickness_in": 0.0785,
+      "boost_material": "1.0038",
+      "boost_raw_material": "STAI0080",
+      "boost_raw_thickness_in": 0.08
+    }
+  ]
+}

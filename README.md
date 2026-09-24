@@ -9,7 +9,7 @@ lists these pieces on lines 16–19.
 
 ```powershell
 python -m brace_dxf.versioned generate samples output
-python -m brace_dxf.versioned cut-only samples output
+python -m brace_dxf.materials samples config/boost_materials.json output/boost_materials_V8.json
 python -m unittest discover -s tests -v
 ```
 
@@ -24,7 +24,7 @@ It plots the four ACT punch positions over the V7 finished contour at the same
 inch scale; the punch circles are references, not cut holes.
 The generator compares all four files with the latest version and creates the
 next shared V number only when their DXF content changes. It never overwrites a
-versioned file. **V7 is the current trial.**
+versioned file. **V8 is the current trial.**
 
 | Version | Geometry |
 | --- | --- |
@@ -35,22 +35,21 @@ versioned file. **V7 is the current trial.**
 | V5 | Bend lines stop at vertical cut stations |
 | V6 | Red cuts connected vertically across each web end |
 | V7 | One closed finished contour on `CUT`; all guides on `REFERENCE` |
+| V8 | Same finished contour; only the `CUT` layer and one closed polyline |
 
-Versioned files are named `UKNBRC_1_V7.dxf`, `UKNBRC_2_V7.dxf`, and so on.
+Current files are named `UKNBRC_1_V8.dxf`, `UKNBRC_2_V8.dxf`, and so on.
 The older descriptive filenames remain in the local working folder for editor
-tabs already open. The repository contains the numbered V1–V7 DXFs; future
-iterations use only version numbers. The cut-only companions keep the same V
-number because their finished geometry is identical. For example,
-`UKNBRC_1_V7_CUT_ONLY.dxf` contains one closed `CUT` polyline and no
-`REFERENCE` geometry. Use it to test Boost's Automatic outline handling or
-import it into another CAM program. Keep the unsuffixed V7 DXF for visual
-reference.
+tabs already open. The repository contains the numbered V1–V8 DXFs. V7 retains
+the source blank and punch/bend guides for visual reference. V8 contains only
+the finished cut. The older `*_V7_CUT_ONLY.dxf` companions are geometrically
+the same as V8; the new default generator makes the cut-only form directly.
 
 ## What comes from ACT
 
 All four pieces are 4 in × 2.5 in, 14 ga Cee. Each flange has two 5/8 in
 holes, 1.25 in from its web side. Longitudinal hole positions and the full
-precision member length are imported from the order XML. The punch PDF shows
+precision member length and 14 ga designation are imported from the order XML.
+The punch PDF shows
 the standard Cee return lips but does not dimension them.
 
 ## Trial flat-pattern assumptions
@@ -72,12 +71,29 @@ the standard Cee return lips but does not dimension them.
 - The web extends the complete ACT member length. The trial has no developed
   bend radii, corner reliefs, or kerf compensation.
 
-`CUT` contains the single closed contour to cut. `REFERENCE` contains the
-original rectangular blank, four ACT punch circles, four transverse center
-guides, and two yellow dashed bend lines. The bend lines stop at the adjacent
-vertical cut stations. Select only `CUT` for the Boost cutting operation;
-`REFERENCE` is for visual comparison. The ACI colors are trial settings in each
-JSON file; Boost compatibility and operation mapping still need confirmation.
+V8 contains just the single closed `CUT` contour. V7 retains a `REFERENCE`
+layer with the original rectangular blank, four ACT punch circles, four
+transverse center guides, and two yellow dashed bend lines. The bend lines stop
+at the adjacent vertical cut stations. The ACI colors are trial settings in
+each JSON file; Boost compatibility and operation mapping still need confirmation.
+
+## Material lookup
+
+The ACT order says **14 ga** for these four pieces. The user confirmed Boost
+material **1.0038** (Steel) and raw material **STAI0080** for this trial. The
+editable lookup in `config/boost_materials.json` uses a provisional 0.0785 in
+nominal galvanized 14 ga thickness and records STAI0080 as 0.080 in. The
+selector chooses the smallest configured raw-material thickness at least as
+large as the nominal gauge thickness. Add more verified gauge and Boost table
+rows to that file later. The nominal value follows the
+[Ferraz Shawmut sheet-metal gauge chart](https://fsconnect.ferrazshawmut.com/marketing/PDFs/BEI-Bookmarked.pdf);
+it has not been checked against the Unravel Android app or the actual coil
+measurement.
+
+`output/boost_materials_V8.json` records the resulting selection for each part.
+It is a selection guide, not a DXF import setting: the DXFs do **not** fill
+Boost's Material or Raw Material fields automatically. Assign those fields in
+Boost until a tested Boost-specific import or automation path is available.
 
 ## Boost import observation for V7
 
@@ -88,17 +104,17 @@ rectangular blank outside the finished stepped contour. Setting **Cut geometry
 then displayed a cutting program. The larger closed rectangle on `REFERENCE`
 is the likely cause of the automatic outline ambiguity; this is an inference
 from the screen and has not been isolated with a cut-only import. The
-`*_CUT_ONLY.dxf` companions remove the rectangle and all other reference
-entities without changing the finished contour. Inspect the generated cut path
-before use.
+V8 removes the rectangle and all other reference entities without changing
+the finished contour. Inspect the generated cut path before use; V8's Boost
+Automatic outline import has not yet been confirmed.
 
 ## Known-good Boost comparison
 
 `output/uncoiler payoff stand side plate.DXF` is a user-supplied file that
 imports well in Boost. It uses DXF AC1021, has no declared drawing units,
 and contains 45 LINE and 43 ARC entities. Its entities carry explicit ACI 7
-color on layers `0` and `1`. The brace V7 files use inch units, one finished
-LWPOLYLINE on `CUT`, and reference geometry on `REFERENCE`. The different color
+color on layers `0` and `1`. The brace V8 files use inch units and one finished
+LWPOLYLINE on `CUT` only. The different color
 setup may explain Boost's reported element-color warning, but that has not
 been confirmed by an import comparison.
 

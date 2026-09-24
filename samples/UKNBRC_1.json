@@ -2,6 +2,7 @@
   "piece_mark": "UKNBRC_1",
   "source": "LOHA1046597470 Order.txt: UKNBRC_1; cross-checked against punch-pattern PDF",
   "units": "inch",
+  "gauge": 14,
   "length": 37.681008993695826,
   "web_width": 4.0,
   "flange_width": 2.5,

@@ -20,6 +20,8 @@ def load_spec(path):
     spec = json.loads(Path(path).read_text(encoding="utf-8"))
     if spec.get("units") != "inch":
         raise ValueError("Only inch units are supported")
+    if not isinstance(spec.get("gauge"), int) or spec["gauge"] <= 0:
+        raise ValueError("ACT gauge must be a positive integer")
     for key in ("length", "web_width", "flange_width", "trial_lip_width",
                 "hole_offset_from_web", "hole_diameter",
                 "trial_cut_clearance_from_bend"):
@@ -136,7 +138,7 @@ def finished_outline(spec):
     ]
 
 
-def build_dxf(spec, include_reference=True):
+def build_dxf(spec, include_reference=False):
     flange = spec["flange_width"]
     web = spec["web_width"]
     lip = spec["trial_lip_width"]
@@ -185,7 +187,7 @@ def build_dxf(spec, include_reference=True):
     )
 
 
-def inspect_dxf(path, cut_only=False):
+def inspect_dxf(path, cut_only=True):
     lines = Path(path).read_text(encoding="ascii").splitlines()
     if len(lines) % 2:
         raise ValueError("DXF has an unmatched group code")
@@ -226,15 +228,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", help="JSON spec, or 'validate'")
     parser.add_argument("output", help="output DXF, or DXF to validate")
+    parser.add_argument("--with-reference", action="store_true",
+                        help="include the old rectangular blank and ACT guides")
     args = parser.parse_args()
     if args.source == "validate":
-        print(inspect_dxf(args.output))
+        print(inspect_dxf(args.output, cut_only=not args.with_reference))
         return
     spec = load_spec(args.source)
     destination = Path(args.output)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(build_dxf(spec), encoding="ascii", newline="\n")
-    print(f"Wrote {destination}: {inspect_dxf(destination)}")
+    destination.write_text(build_dxf(spec, include_reference=args.with_reference),
+                           encoding="ascii", newline="\n")
+    print(f"Wrote {destination}: {inspect_dxf(destination, cut_only=not args.with_reference)}")
 
 
 if __name__ == "__main__":

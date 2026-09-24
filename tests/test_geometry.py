@@ -56,7 +56,7 @@ class TrialGeometryTest(unittest.TestCase):
 
     def test_output_has_inch_units_and_closed_perimeter(self):
         for spec in SPECS:
-            dxf = build_dxf(spec)
+            dxf = build_dxf(spec, include_reference=True)
             self.assertIn("9\n$INSUNITS\n70\n1\n", dxf)
             self.assertIn("0\nLWPOLYLINE\n100\nAcDbEntity\n8\nCUT\n100\nAcDbPolyline\n90\n12\n70\n1\n", dxf)
             self.assertIn("0\nLWPOLYLINE\n100\nAcDbEntity\n8\nREFERENCE\n100\nAcDbPolyline\n90\n4\n70\n1\n", dxf)
@@ -109,7 +109,7 @@ class TrialGeometryTest(unittest.TestCase):
                         near_cut[2][0] - near, spec["hole_diameter"] / 2)
                     self.assertAlmostEqual(
                         far - far_cut[2][0], spec["hole_diameter"] / 2)
-            dxf = build_dxf(spec)
+            dxf = build_dxf(spec, include_reference=True)
             self.assertEqual(dxf.count("8\nREFERENCE\n100\nAcDbCircle\n"), 4)
             self.assertEqual(dxf.count("8\nREFERENCE\n100\nAcDbLine\n"), 4)
             self.assertEqual(dxf.count("8\nREFERENCE\n62\n2\n6\nDASHED\n100\nAcDbLine\n"), 2)

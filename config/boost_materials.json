@@ -1,0 +1,14 @@
+{
+  "material_family": "Steel",
+  "boost_material": "1.0038",
+  "nominal_basis": "Published galvanized-sheet gauge convention; verify against Unravel Android app",
+  "nominal_gauges_in": {
+    "14": 0.0785
+  },
+  "available_raw_materials": [
+    {
+      "code": "STAI0080",
+      "thickness_in": 0.08
+    }
+  ]
+}

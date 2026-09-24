@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from brace_dxf.__main__ import build_dxf, load_spec
 from brace_dxf.import_order import PIECE_MARKS
 from brace_dxf.versioned import (
     LEGACY_SUFFIXES,
@@ -47,7 +48,7 @@ class VersioningTest(unittest.TestCase):
             version, files, created = generate_version(samples, output)
             self.assertEqual((version, files, created), (1, [], False))
             cut_files = export_cut_only(samples, output)
-            self.assertEqual(len(cut_files), 4)
+            self.assertEqual(cut_files, [])
             self.assertEqual(export_cut_only(samples, output), [])
             self.assertEqual(latest_version(output), 1)
             spec_path = samples / "UKNBRC_1.json"
@@ -58,6 +59,16 @@ class VersioningTest(unittest.TestCase):
             self.assertEqual((version, len(files), created), (2, 4, True))
             self.assertTrue((output / "UKNBRC_1_V1.dxf").is_file())
             self.assertTrue((output / "UKNBRC_1_V2.dxf").is_file())
+
+    def test_cut_only_companions_for_older_reference_version(self):
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder)
+            for mark in PIECE_MARKS:
+                spec = load_spec(ROOT / "samples" / f"{mark}.json")
+                (output / f"{mark}_V1.dxf").write_bytes(
+                    build_dxf(spec, include_reference=True).encode("ascii"))
+            self.assertEqual(len(export_cut_only(ROOT / "samples", output)), 4)
+            self.assertEqual(export_cut_only(ROOT / "samples", output), [])
 
 
 if __name__ == "__main__":

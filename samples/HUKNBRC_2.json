@@ -2,6 +2,7 @@
   "piece_mark": "HUKNBRC_2",
   "source": "LOHA1046597470 Order.txt: HUKNBRC_2; cross-checked against punch-pattern PDF",
   "units": "inch",
+  "gauge": 14,
   "length": 43.6430388157399,
   "web_width": 4.0,
   "flange_width": 2.5,

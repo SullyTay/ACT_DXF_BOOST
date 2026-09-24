@@ -72,7 +72,7 @@ def generate_version(sample_dir, output_dir):
 
 
 def export_cut_only(sample_dir, output_dir):
-    """Write companions of the current version with only its closed cut path."""
+    """Write companions for old reference-rich versions; newer versions need none."""
     samples = Path(sample_dir)
     output = Path(output_dir)
     version = latest_version(output)
@@ -84,10 +84,12 @@ def export_cut_only(sample_dir, output_dir):
         if spec["piece_mark"] != mark:
             raise ValueError(f"Piece mark does not match {mark}.json")
         full = output / f"{mark}_V{version}.dxf"
-        if full.read_bytes() != build_dxf(spec).encode("ascii"):
+        data = build_dxf(spec).encode("ascii")
+        if full.read_bytes() == data:
+            continue
+        if full.read_bytes() != build_dxf(spec, include_reference=True).encode("ascii"):
             raise ValueError(f"Current reference DXF differs from sample: {full}")
         destination = output / f"{mark}_V{version}_CUT_ONLY.dxf"
-        data = build_dxf(spec, include_reference=False).encode("ascii")
         if destination.exists():
             if destination.read_bytes() != data:
                 raise ValueError(f"Existing cut-only file differs: {destination}")
