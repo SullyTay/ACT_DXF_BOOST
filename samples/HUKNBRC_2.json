@@ -1,0 +1,26 @@
+{
+  "piece_mark": "HUKNBRC_2",
+  "source": "LOHA1046597470 Order.txt: HUKNBRC_2; cross-checked against punch-pattern PDF",
+  "units": "inch",
+  "length": 43.6430388157399,
+  "web_width": 4.0,
+  "flange_width": 2.5,
+  "trial_lip_width": 0.875,
+  "hole_offset_from_web": 1.25,
+  "hole_diameter": 0.625,
+  "holes": {
+    "left": [
+      7.016,
+      30.273
+    ],
+    "right": [
+      5.669,
+      37.4
+    ]
+  },
+  "trial_cut_clearance_from_bend": 0.125,
+  "layer_colors": {
+    "CUT": 1,
+    "REFERENCE": 8
+  }
+}

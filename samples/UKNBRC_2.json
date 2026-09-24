@@ -1,0 +1,26 @@
+{
+  "piece_mark": "UKNBRC_2",
+  "source": "LOHA1046597470 Order.txt: UKNBRC_2; cross-checked against punch-pattern PDF",
+  "units": "inch",
+  "length": 37.681008993695826,
+  "web_width": 4.0,
+  "flange_width": 2.5,
+  "trial_lip_width": 0.875,
+  "hole_offset_from_web": 1.25,
+  "hole_diameter": 0.625,
+  "holes": {
+    "left": [
+      7.452,
+      25.846
+    ],
+    "right": [
+      5.625,
+      31.683
+    ]
+  },
+  "trial_cut_clearance_from_bend": 0.125,
+  "layer_colors": {
+    "CUT": 1,
+    "REFERENCE": 8
+  }
+}

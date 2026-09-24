@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.deps/
+Source Files/
+output/pdf_pages/
+output/*_trial.dxf
+output/uncoiler payoff stand side plate.DXF
